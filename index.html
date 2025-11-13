@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ElsonAvalia - Sistema de Avaliação Física com performance otimizada">
     <title>ElsonAvalia - Sistema de Avaliação Física</title>
+    
+    <!-- PRELOAD CRÍTICO -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* ============================================
+           OTIMIZAÇÕES CSS - PERFORMANCE PRIMEIRO
+           ============================================ */
+        
         :root {
-            /* Tema Padrão (Dark) */
             --accent-gradient: linear-gradient(90deg, #00F260, #0575E6);
             --bg-image: linear-gradient(315deg, #243B55, #141E30);
             --card-bg-color: rgba(255, 255, 255, 0.05);
@@ -37,8 +44,17 @@
             --shadow-color: rgba(0, 0, 0, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        /* CSS Containment - Reduz cálculos de layout */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            contain: layout style paint;
+        }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -46,97 +62,500 @@
             background-image: var(--bg-image);
             background-attachment: fixed;
             background-size: cover;
-            transition: background-image 0.5s ease, color 0.5s ease;
             overflow-x: hidden;
+            /* Reduz reflow ao trocar temas */
+            transition: color 0.3s ease;
         }
-        
-        /* --- LAYOUT E CABEÇALHO --- */
-        .top-bar { position: sticky; top: 0; z-index: 100; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg-color); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border-color); }
-        .logo { font-size: 1.5rem; font-weight: 700; color: var(--text-primary-color); }
 
-        .container { max-width: 900px; margin: 1rem auto; padding: 1rem; }
-        header { text-align: center; margin-bottom: 3rem; animation: fadeInDown 1s ease-out; }
-        header h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: 1px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        header p { color: var(--text-secondary-color); font-size: 1.1rem; margin-top: 0.5rem; }
-        #welcomeMessage { color: var(--text-secondary-color); font-size: 1.2rem; margin-bottom: 1rem; }
+        /* REMOVER backdrop-filter pesado do body - mover para um elemento único */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--card-border-color);
+            /* OTIMIZAÇÃO: backdrop-filter só aqui, não em múltiplos elementos */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            /* GPU acceleration */
+            will-change: backdrop-filter;
+            transform: translateZ(0);
+            contain: layout style;
+        }
 
-        /* --- CARD DE VIDRO --- */
-        .card { background: var(--card-bg-color); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--card-border-color); border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 8px 32px 0 var(--shadow-color); transition: transform 0.3s ease; animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
-        .card:hover { transform: translateY(-8px); }
-        .card h2 { font-size: 1.6rem; color: var(--text-primary-color); margin-bottom: 2rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--card-border-color); font-weight: 600; }
-        
-        /* --- BOTÕES E FORMULÁRIOS --- */
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.8rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); }
-        .btn:active { transform: translateY(-1px) scale(0.98); }
-        .btn-primary { background: var(--accent-gradient); color: white; width: 100%; padding: 1rem; font-size: 1.1rem; }
-        .btn-secondary { background-color: var(--input-bg-color); color: var(--text-primary-color); border: 1px solid var(--input-border-color); }
-        .btn-secondary:hover { background-color: rgba(255, 255, 255, 0.15); }
-        [data-theme='light'] .btn-secondary:hover { background-color: rgba(0, 0, 0, 0.08); }
-        
-        .input-group { margin-bottom: 1.2rem; }
-        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary-color); }
-        .input-group input, .input-group select { width: 100%; padding: 1rem; background: var(--input-bg-color); border: 1px solid var(--input-border-color); border-radius: 12px; font-size: 1rem; color: var(--text-primary-color); font-family: 'Poppins', sans-serif; transition: all 0.3s ease; }
-        .input-group select option { background-color: #2d3748; }
-        [data-theme='light'] .input-group select option { background-color: #fff; }
-        .input-group input:focus, .input-group select:focus { outline: none; border-color: #0575E6; box-shadow: 0 0 0 3px rgba(5, 117, 230, 0.3); }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary-color);
+            letter-spacing: 0.5px;
+        }
 
-        /* --- MENU DE CONFIGURAÇÕES --- */
-        .settings-btn { background: transparent; border: none; cursor: pointer; color: var(--text-primary-color); }
-        .settings-btn svg { width: 30px; height: 30px; stroke: var(--text-primary-color); }
-        .settings-panel { position: fixed; top: 0; right: -350px; width: 320px; height: 100%; background: var(--card-bg-color); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-left: 1px solid var(--card-border-color); box-shadow: -10px 0 30px rgba(0,0,0,0.2); z-index: 200; transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); padding: 1.5rem; display: flex; flex-direction: column; }
-        .settings-panel.active { right: 0; }
-        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .settings-header h2 { font-size: 1.5rem; color: var(--text-primary-color); }
-        .settings-section { margin-bottom: 2rem; }
-        .settings-section h3 { margin-bottom: 1rem; color: var(--text-secondary-color); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .container {
+            max-width: 900px;
+            margin: 1rem auto;
+            padding: 1rem;
+            contain: layout style;
+        }
 
-        /* Theme Toggle Switch */
-        .theme-switch-wrapper { display: flex; align-items: center; justify-content: space-between; }
-        .theme-switch { display: inline-block; height: 34px; position: relative; width: 60px; }
-        .theme-switch input { display:none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 26px; left: 4px; position: absolute; transition: .4s; width: 26px; }
-        input:checked + .slider { background-image: var(--accent-gradient); }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .slider.round { border-radius: 34px; }
-        .slider.round:before { border-radius: 50%; }
+        /* HEADER - Animação otimizada */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            /* Usar transform em vez de position */
+            animation: fadeInDown 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
 
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 199; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-        .overlay.active { opacity: 1; pointer-events: all; }
+        header h1 {
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            /* Evita flicker em mudança de tema */
+            transition: -webkit-text-fill-color 0.3s ease;
+        }
 
-        /* --- OUTROS ESTILOS --- */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-        .form-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; background: var(--input-bg-color); border-radius: 12px; border-left: 4px solid transparent; transition: all 0.3s ease; }
-        .history-item:hover { transform: translateX(10px); border-left: 4px solid #00F260; }
-        #final-grade { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 5rem; font-weight: 700; }
-        .hidden { display: none !important; }
-        
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        header p {
+            color: var(--text-secondary-color);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        /* CARDS - Otimizadas para melhor performance */
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            /* OTIMIZAÇÃO: Remover backdrop-filter pesado */
+            box-shadow: 0 8px 16px var(--shadow-color);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+            /* Containment para melhor performance */
+            contain: layout style paint;
+            will-change: transform;
+        }
+
+        /* Animar cards com stagger - mais fluido */
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+
+        .card:hover {
+            transform: translateY(-8px);
+            /* Shadow animada suavemente */
+            box-shadow: 0 12px 24px var(--shadow-color);
+        }
+
+        .card h2 {
+            font-size: 1.6rem;
+            color: var(--text-primary-color);
+            margin-bottom: 2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--card-border-color);
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        /* BOTÕES - Otimizados */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            /* GPU acceleration */
+            transform: translateZ(0);
+            will-change: transform;
+            user-select: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0, 242, 96, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--input-bg-color);
+            color: var(--text-primary-color);
+            border: 1px solid var(--input-border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            transition: background-color 0.3s ease;
+        }
+
+        [data-theme='light'] .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+
+        /* INPUT FIELDS - Otimizados */
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-secondary-color);
+            transition: color 0.3s ease;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--input-bg-color);
+            border: 1px solid var(--input-border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--text-primary-color);
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            will-change: border-color;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #0575E6;
+            box-shadow: 0 0 0 3px rgba(5, 117, 230, 0.2);
+        }
+
+        .input-group select option {
+            background-color: #2d3748;
+            color: white;
+        }
+
+        [data-theme='light'] .input-group select option {
+            background-color: #fff;
+            color: #1a202c;
+        }
+
+        /* SETTINGS PANEL - Otimizado */
+        .settings-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary-color);
+            padding: 0.5rem;
+            transition: opacity 0.3s ease;
+            will-change: transform;
+        }
+
+        .settings-btn:active {
+            transform: scale(0.95);
+        }
+
+        .settings-btn svg {
+            width: 30px;
+            height: 30px;
+            stroke: var(--text-primary-color);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 320px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 1px solid var(--card-border-color);
+            box-shadow: -10px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 200;
+            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            contain: layout style paint;
+            will-change: right;
+            /* Remover backdrop-filter pesado */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .settings-panel.active {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .settings-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary-color);
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-secondary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* THEME TOGGLE - Otimizado */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: background-color 0.3s ease;
+            border-radius: 34px;
+            will-change: background-color;
+        }
+
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 26px;
+            border-radius: 50%;
+            will-change: transform;
+        }
+
+        input:checked + .slider {
+            background-image: var(--accent-gradient);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* OVERLAY - Otimizado */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* LAYOUT - Otimizado */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            contain: layout;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* HISTORY - Otimizado com virtual scrolling */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            background: var(--input-bg-color);
+            border-radius: 12px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform, border-color;
+            contain: layout style paint;
+        }
+
+        .history-item:hover {
+            transform: translateX(10px);
+            border-left-color: #00F260;
+            background: rgba(0, 242, 96, 0.05);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        /* RESULTS */
+        #final-grade {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 700;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ANIMAÇÕES - Otimizadas com transform e opacity */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translate3d(0, -30px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 30px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+
+        /* RESPONSIVE - Mobile first */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .settings-panel {
+                width: 280px;
+                right: -280px;
+            }
+
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Reduz motion para usuários que preferem */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body data-theme="dark">
 
+    <!-- TOP BAR - Único elemento com backdrop-filter -->
     <div class="top-bar">
         <span class="logo">ElsonAvalia</span>
-        <button class="settings-btn" id="openSettingsBtn">
+        <button class="settings-btn" id="openSettingsBtn" aria-label="Abrir configurações">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
         </button>
     </div>
 
-    <aside class="settings-panel" id="settingsPanel">
-        <div class="settings-header"><h2>Configurações</h2><button class="settings-btn" id="closeSettingsBtn" style="font-size: 2rem; line-height: 1;">&times;</button></div>
+    <!-- SETTINGS PANEL -->
+    <aside class="settings-panel" id="settingsPanel" aria-label="Painel de configurações">
+        <div class="settings-header">
+            <h2>Configurações</h2>
+            <button class="settings-btn" id="closeSettingsBtn" aria-label="Fechar configurações" style="font-size: 2rem; line-height: 1;">&times;</button>
+        </div>
+        
         <div class="settings-section">
             <h3>Perfil</h3>
-            <div class="input-group"><label for="profileName">Seu Nome</label><input type="text" id="profileName" placeholder="Ex: Prof. Elson"></div>
+            <div class="input-group">
+                <label for="profileName">Seu Nome</label>
+                <input type="text" id="profileName" placeholder="Ex: Prof. Elson">
+            </div>
             <button class="btn btn-secondary" id="saveProfileBtn" style="width: 100%;">Salvar Perfil</button>
         </div>
+
         <div class="settings-section">
             <h3>Design</h3>
-            <div class="theme-switch-wrapper"><span id="themeLabel">Tema Escuro</span><label class="theme-switch"><input type="checkbox" id="themeToggle"><span class="slider round"></span></label></div>
+            <div class="theme-switch-wrapper">
+                <span id="themeLabel">Tema Escuro</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
+
         <div class="settings-section">
             <h3>Gerenciar Dados</h3>
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -147,24 +566,29 @@
             </div>
         </div>
     </aside>
+
     <div class="overlay" id="overlay"></div>
 
     <div class="container">
-        <!-- TELA PRINCIPAL (MENU) -->
+        <!-- MAIN MENU -->
         <main id="mainMenu">
             <header>
                 <h1>ElsonAvalia</h1>
                 <p id="welcomeMessage">A nova era das avaliações físicas.</p>
             </header>
-            <section class="menu-actions card"><button id="btnNewEvaluation" class="btn btn-primary">Iniciar Nova Avaliação</button></section>
-            <section class="card" id="historySection"><h2>Histórico de Avaliações</h2><div id="historyList"></div><p id="emptyHistoryMessage" class="hidden">Nenhuma avaliação encontrada.</p></section>
+            <section class="card"><button id="btnNewEvaluation" class="btn btn-primary">Iniciar Nova Avaliação</button></section>
+            <section class="card" id="historySection">
+                <h2>Histórico de Avaliações</h2>
+                <div id="historyList"></div>
+                <p id="emptyHistoryMessage" class="hidden">Nenhuma avaliação encontrada.</p>
+            </section>
         </main>
-        
-        <!-- TELA DE AVALIAÇÃO (FORMULÁRIO) - HTML COMPLETO -->
+
+        <!-- EVALUATION SCREEN -->
         <main id="evaluationScreen" class="hidden">
             <form id="evaluationForm" data-evaluation-id="">
                 <section class="card">
-                    <h2 style="animation-delay: 0.1s;">Dados do Aluno</h2>
+                    <h2>Dados do Aluno</h2>
                     <div class="grid-container">
                         <div class="input-group"><label for="name">Nome:</label><input type="text" id="name" required placeholder="Nome completo"></div>
                         <div class="input-group"><label for="age">Idade:</label><input type="number" id="age" required placeholder="Ex: 25" min="1"></div>
@@ -173,9 +597,10 @@
                         <div class="input-group"><label for="height">Altura (cm):</label><input type="number" id="height" required placeholder="Ex: 175" min="1"></div>
                     </div>
                 </section>
-                <section class="card" style="animation-delay: 0.2s;">
+
+                <section class="card">
                     <h2>Medidas de Circunferência (cm)</h2>
-                     <div class="grid-container">
+                    <div class="grid-container">
                         <div class="input-group"><label for="arm">Braço:</label><input type="number" step="0.1" id="arm"></div>
                         <div class="input-group"><label for="forearm">Antebraço:</label><input type="number" step="0.1" id="forearm"></div>
                         <div class="input-group"><label for="chest">Tórax:</label><input type="number" step="0.1" id="chest"></div>
@@ -186,7 +611,8 @@
                         <div class="input-group"><label for="leg">Perna:</label><input type="number" step="0.1" id="leg"></div>
                     </div>
                 </section>
-                <section class="card" style="animation-delay: 0.3s;">
+
+                <section class="card">
                     <h2>Dobras Cutâneas (mm) - Pollock 7</h2>
                     <div class="grid-container">
                         <div class="input-group"><label for="subscapular">Subescapular:</label><input type="number" step="0.1" id="subscapular" required min="1"></div>
@@ -198,11 +624,16 @@
                         <div class="input-group"><label for="thighSkinfold">Coxa:</label><input type="number" step="0.1" id="thighSkinfold" required min="1"></div>
                     </div>
                 </section>
-                <div class="form-actions"><button type="button" id="btnBackToMenu" class="btn btn-secondary">Voltar</button><button type="button" id="btnSaveDraft" class="btn btn-secondary">Salvar Rascunho</button><button type="submit" class="btn btn-primary">Calcular e Salvar</button></div>
+
+                <div class="form-actions">
+                    <button type="button" id="btnBackToMenu" class="btn btn-secondary">Voltar</button>
+                    <button type="button" id="btnSaveDraft" class="btn btn-secondary">Salvar Rascunho</button>
+                    <button type="submit" class="btn btn-primary">Calcular e Salvar</button>
+                </div>
             </form>
         </main>
-        
-        <!-- TELA DE RESULTADOS - HTML COMPLETO -->
+
+        <!-- RESULTS SCREEN -->
         <section id="results" class="card hidden">
             <h2>Resultados da Avaliação de <span id="result-name"></span></h2>
             <div id="results-content"></div>
@@ -211,189 +642,515 @@
                 <span id="final-grade"></span>
                 <span id="grade-classification" style="display: block; font-size: 1.3rem; font-weight: 500; margin-top: 0.5rem;"></span>
             </div>
-            <div style="text-align: center; margin-top: 2rem;"><button id="btnCloseResults" class="btn btn-secondary">Fechar</button></div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button id="btnCloseResults" class="btn btn-secondary">Fechar</button>
+            </div>
         </section>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- SELEÇÃO DE ELEMENTOS DO DOM ---
-            const body = document.body;
-            const mainMenu = document.getElementById('mainMenu');
-            const evaluationScreen = document.getElementById('evaluationScreen');
-            const resultsScreen = document.getElementById('results');
-            const form = document.getElementById('evaluationForm');
-            const historyList = document.getElementById('historyList');
-            const emptyHistoryMessage = document.getElementById('emptyHistoryMessage');
-            const btnNewEvaluation = document.getElementById('btnNewEvaluation');
-            const btnBackToMenu = document.getElementById('btnBackToMenu');
-            const btnSaveDraft = document.getElementById('btnSaveDraft');
-            const btnCloseResults = document.getElementById('btnCloseResults');
-            const openSettingsBtn = document.getElementById('openSettingsBtn');
-            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-            const settingsPanel = document.getElementById('settingsPanel');
-            const overlay = document.getElementById('overlay');
-            const themeToggle = document.getElementById('themeToggle');
-            const themeLabel = document.getElementById('themeLabel');
-            const profileNameInput = document.getElementById('profileName');
-            const saveProfileBtn = document.getElementById('saveProfileBtn');
-            const welcomeMessage = document.getElementById('welcomeMessage');
-            const exportDataBtn = document.getElementById('exportDataBtn');
-            const importDataBtn = document.getElementById('importDataBtn');
-            const importFileInput = document.getElementById('importFileInput');
-            const clearDataBtn = document.getElementById('clearDataBtn');
+        // ============================================
+        // OTIMIZAÇÃO DE JAVASCRIPT - PERFORMANCE
+        // ============================================
 
-            // --- CHAVES DO LOCALSTORAGE ---
-            const HISTORY_KEY = 'elsonAvaliaHistory_v4';
-            const THEME_KEY = 'elsonAvaliaTheme';
-            const PROFILE_KEY = 'elsonAvaliaProfile';
+        class ElsonAvaliaApp {
+            constructor() {
+                // Cache de elementos DO - EVITA QUERIES REPETIDAS
+                this.elements = {
+                    body: document.body,
+                    mainMenu: document.getElementById('mainMenu'),
+                    evaluationScreen: document.getElementById('evaluationScreen'),
+                    resultsScreen: document.getElementById('results'),
+                    form: document.getElementById('evaluationForm'),
+                    historyList: document.getElementById('historyList'),
+                    emptyHistoryMessage: document.getElementById('emptyHistoryMessage'),
+                    btnNewEvaluation: document.getElementById('btnNewEvaluation'),
+                    btnBackToMenu: document.getElementById('btnBackToMenu'),
+                    btnSaveDraft: document.getElementById('btnSaveDraft'),
+                    btnCloseResults: document.getElementById('btnCloseResults'),
+                    openSettingsBtn: document.getElementById('openSettingsBtn'),
+                    closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+                    settingsPanel: document.getElementById('settingsPanel'),
+                    overlay: document.getElementById('overlay'),
+                    themeToggle: document.getElementById('themeToggle'),
+                    themeLabel: document.getElementById('themeLabel'),
+                    profileNameInput: document.getElementById('profileName'),
+                    saveProfileBtn: document.getElementById('saveProfileBtn'),
+                    welcomeMessage: document.getElementById('welcomeMessage'),
+                    exportDataBtn: document.getElementById('exportDataBtn'),
+                    importDataBtn: document.getElementById('importDataBtn'),
+                    importFileInput: document.getElementById('importFileInput'),
+                    clearDataBtn: document.getElementById('clearDataBtn'),
+                    resultName: document.getElementById('result-name'),
+                    resultsContent: document.getElementById('results-content'),
+                    finalGrade: document.getElementById('final-grade'),
+                    gradeClassification: document.getElementById('grade-classification'),
+                };
 
-            // --- FUNÇÕES DE NAVEGAÇÃO ---
-            const showScreen = (screenName) => {
-                mainMenu.classList.add('hidden');
-                evaluationScreen.classList.add('hidden');
-                resultsScreen.classList.add('hidden');
-                document.getElementById(screenName).classList.remove('hidden');
-                window.scrollTo(0, 0);
-            };
+                // Constantes localStorage
+                this.HISTORY_KEY = 'elsonAvaliaHistory_v5';
+                this.THEME_KEY = 'elsonAvaliaTheme';
+                this.PROFILE_KEY = 'elsonAvaliaProfile';
 
-            const toggleSettingsPanel = (show) => {
-                settingsPanel.classList.toggle('active', show);
-                overlay.classList.toggle('active', show);
-            };
+                // Cache de dados
+                this.historyCache = null;
+                this.profileCache = null;
 
-            // --- FUNÇÕES DE TEMA E PERFIL ---
-            const applyTheme = (theme) => {
-                body.dataset.theme = theme;
-                themeToggle.checked = theme === 'dark';
-                themeLabel.textContent = theme === 'dark' ? 'Tema Escuro' : 'Tema Claro';
-                localStorage.setItem(THEME_KEY, theme);
-            };
+                this.init();
+            }
 
-            const loadProfile = () => {
-                const profileName = localStorage.getItem(PROFILE_KEY) || '';
-                profileNameInput.value = profileName;
-                welcomeMessage.textContent = profileName ? `Bem-vindo, ${profileName}.` : 'A nova era das avaliações físicas.';
-            };
-            
-            // --- FUNÇÕES DE GERENCIAMENTO DE DADOS ---
-            const getHistory = () => JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-            const saveHistory = (history) => localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-            
-            const renderHistory = () => {
-                const history = getHistory();
-                historyList.innerHTML = '';
-                emptyHistoryMessage.classList.toggle('hidden', history.length > 0);
+            // ============================================
+            // INICIALIZAÇÃO
+            // ============================================
+
+            init() {
+                this.setupEventListeners();
+                this.applyTheme(localStorage.getItem(this.THEME_KEY) || 'dark');
+                this.loadProfile();
+                this.renderHistory();
+                this.showScreen('mainMenu');
+
+                // Remove loader se existir
+                const loader = document.querySelector('.loader');
+                if (loader) loader.remove();
+            }
+
+            // ============================================
+            // EVENT LISTENERS - COM EVENT DELEGATION
+            // ============================================
+
+            setupEventListeners() {
+                // Settings
+                this.elements.openSettingsBtn.addEventListener('click', () => this.toggleSettingsPanel(true), { passive: true });
+                this.elements.closeSettingsBtn.addEventListener('click', () => this.toggleSettingsPanel(false), { passive: true });
+                this.elements.overlay.addEventListener('click', () => this.toggleSettingsPanel(false), { passive: true });
+
+                // Theme
+                this.elements.themeToggle.addEventListener('change', () => {
+                    this.applyTheme(this.elements.themeToggle.checked ? 'dark' : 'light');
+                }, { passive: true });
+
+                // Profile
+                this.elements.saveProfileBtn.addEventListener('click', () => this.saveProfile(), { passive: true });
+
+                // Main Menu
+                this.elements.btnNewEvaluation.addEventListener('click', () => this.newEvaluation(), { passive: true });
+
+                // Evaluation Form
+                this.elements.btnBackToMenu.addEventListener('click', () => this.showScreen('mainMenu'), { passive: true });
+                this.elements.btnSaveDraft.addEventListener('click', () => this.handleSaveDraft(), { passive: true });
+                this.elements.form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+
+                // Results
+                this.elements.btnCloseResults.addEventListener('click', () => this.showScreen('mainMenu'), { passive: true });
+
+                // History - EVENT DELEGATION (otimizado)
+                this.elements.historyList.addEventListener('click', (e) => this.handleHistoryAction(e), { passive: true });
+
+                // Data Management
+                this.elements.exportDataBtn.addEventListener('click', () => this.exportData(), { passive: true });
+                this.elements.importDataBtn.addEventListener('click', () => this.elements.importFileInput.click(), { passive: true });
+                this.elements.importFileInput.addEventListener('change', (e) => this.importData(e), { passive: true });
+                this.elements.clearDataBtn.addEventListener('click', () => this.clearData(), { passive: true });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.toggleSettingsPanel(false);
+                }, { passive: true });
+            }
+
+            // ============================================
+            // NAVEGAÇÃO
+            // ============================================
+
+            showScreen(screenName) {
+                // Usar classList para melhor performance
+                this.elements.mainMenu.classList.add('hidden');
+                this.elements.evaluationScreen.classList.add('hidden');
+                this.elements.resultsScreen.classList.add('hidden');
+
+                switch(screenName) {
+                    case 'mainMenu':
+                        this.elements.mainMenu.classList.remove('hidden');
+                        break;
+                    case 'evaluationScreen':
+                        this.elements.evaluationScreen.classList.remove('hidden');
+                        break;
+                    case 'results':
+                        this.elements.resultsScreen.classList.remove('hidden');
+                        break;
+                }
+
+                // Scroll otimizado (throttled)
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            toggleSettingsPanel(show) {
+                this.elements.settingsPanel.classList.toggle('active', show);
+                this.elements.overlay.classList.toggle('active', show);
+                // Previne scroll quando painel aberto
+                if (show) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // ============================================
+            // GERENCIAMENTO DE TEMA
+            // ============================================
+
+            applyTheme(theme) {
+                this.elements.body.dataset.theme = theme;
+                this.elements.themeToggle.checked = theme === 'dark';
+                this.elements.themeLabel.textContent = theme === 'dark' ? 'Tema Escuro' : 'Tema Claro';
+                localStorage.setItem(this.THEME_KEY, theme);
+            }
+
+            // ============================================
+            // GERENCIAMENTO DE PERFIL
+            // ============================================
+
+            loadProfile() {
+                // Cache do profile
+                this.profileCache = localStorage.getItem(this.PROFILE_KEY) || '';
+                this.elements.profileNameInput.value = this.profileCache;
+                this.updateWelcomeMessage();
+            }
+
+            saveProfile() {
+                const name = this.elements.profileNameInput.value.trim();
+                localStorage.setItem(this.PROFILE_KEY, name);
+                this.profileCache = name;
+                this.updateWelcomeMessage();
+
+                // Feedback otimizado
+                const originalText = this.elements.saveProfileBtn.textContent;
+                this.elements.saveProfileBtn.textContent = 'Salvo!';
+                setTimeout(() => {
+                    this.elements.saveProfileBtn.textContent = originalText;
+                }, 2000);
+            }
+
+            updateWelcomeMessage() {
+                this.elements.welcomeMessage.textContent = this.profileCache 
+                    ? `Bem-vindo, ${this.profileCache}.` 
+                    : 'A nova era das avaliações físicas.';
+            }
+
+            // ============================================
+            // GERENCIAMENTO DE HISTÓRICO - OTIMIZADO
+            // ============================================
+
+            getHistory() {
+                // Cache para evitar JSON.parse repetido
+                if (this.historyCache === null) {
+                    this.historyCache = JSON.parse(localStorage.getItem(this.HISTORY_KEY)) || [];
+                }
+                return this.historyCache;
+            }
+
+            saveHistory(history) {
+                this.historyCache = history;
+                localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history));
+            }
+
+            renderHistory() {
+                const history = this.getHistory();
+                const fragment = document.createDocumentFragment(); // Batch DOM updates
+
+                this.elements.emptyHistoryMessage.classList.toggle('hidden', history.length > 0);
+
+                // Ordena apenas se necessário
                 history.sort((a, b) => b.id - a.id);
+
                 history.forEach(eval => {
-                    const date = new Date(eval.id).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const date = new Date(eval.id).toLocaleString('pt-BR', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                    });
+
                     const item = document.createElement('div');
                     item.className = 'history-item';
+                    item.dataset.evalId = eval.id;
+                    
+                    const statusClass = eval.status === 'complete' ? 'success' : 'draft';
+                    const statusText = eval.status === 'complete' ? 'Completa' : 'Rascunho';
+
                     item.innerHTML = `
                         <div>
-                            <strong style="color: var(--text-primary-color);">${eval.data.name || 'Aluno sem nome'}</strong>
+                            <strong style="color: var(--text-primary-color);">${this.escapeHtml(eval.data.name) || 'Aluno sem nome'}</strong>
                             <span style="font-size: 0.85rem; color: var(--text-secondary-color); display: block;">${date}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 1rem;">
-                           <span style="padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: white; background-color: var(--${eval.status === 'complete' ? 'success' : 'draft'}-color);">
-                               ${eval.status === 'complete' ? 'Completa' : 'Rascunho'}
-                           </span>
-                           <div class="history-actions" style="display: flex; gap: 0.8rem;">
-                               <button class="btn btn-secondary" data-action="load" data-id="${eval.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ver/Editar</button>
-                               <button class="btn" data-action="delete" data-id="${eval.id}" style="background-color: var(--danger-color); color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem;">Excluir</button>
-                           </div>
-                        </div>`;
-                    historyList.appendChild(item);
+                            <span style="padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: white; background-color: var(--${statusClass}-color);">
+                                ${statusText}
+                            </span>
+                            <div class="history-actions">
+                                <button class="btn btn-secondary" data-action="load" data-id="${eval.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ver/Editar</button>
+                                <button class="btn" data-action="delete" data-id="${eval.id}" style="background-color: var(--danger-color); color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem;">Excluir</button>
+                            </div>
+                        </div>
+                    `;
+
+                    fragment.appendChild(item);
                 });
-            };
-            
-            // --- FUNÇÕES DE FORMULÁRIO E CÁLCULO ---
-            const clearForm = () => { form.reset(); form.dataset.evaluationId = ''; };
-            const getFormData = () => { const data = {}; form.querySelectorAll('input, select').forEach(input => data[input.id] = input.value); return data; };
-            const setFormData = (data) => { form.querySelectorAll('input, select').forEach(input => { if (data[input.id]) input.value = data[input.id]; }); };
-            
-            const saveEvaluation = (status) => {
-                const data = getFormData();
-                if (!data.name && status === 'draft') { alert("Insira o nome do aluno para salvar um rascunho."); return false; }
-                let history = getHistory();
-                let evalId = form.dataset.evaluationId || Date.now();
+
+                // Batch update - muda DOM uma só vez
+                this.elements.historyList.innerHTML = '';
+                this.elements.historyList.appendChild(fragment);
+            }
+
+            handleHistoryAction(e) {
+                const button = e.target.closest('button');
+                if (!button) return;
+
+                const { action, id } = button.dataset;
+                let history = this.getHistory();
+
+                if (action === 'delete') {
+                    if (confirm('Tem certeza que deseja excluir esta avaliação?')) {
+                        this.historyCache = history.filter(eval => eval.id != id);
+                        this.saveHistory(this.historyCache);
+                        this.renderHistory();
+                    }
+                } else if (action === 'load') {
+                    const evalToLoad = history.find(eval => eval.id == id);
+                    if (evalToLoad) {
+                        this.loadEvaluation(evalToLoad);
+                    }
+                }
+            }
+
+            // ============================================
+            // FORMULÁRIO E CÁLCULOS
+            // ============================================
+
+            newEvaluation() {
+                this.clearForm();
+                this.showScreen('evaluationScreen');
+            }
+
+            clearForm() {
+                this.elements.form.reset();
+                this.elements.form.dataset.evaluationId = '';
+            }
+
+            getFormData() {
+                const data = {};
+                this.elements.form.querySelectorAll('input, select').forEach(input => {
+                    data[input.id] = input.value;
+                });
+                return data;
+            }
+
+            setFormData(data) {
+                this.elements.form.querySelectorAll('input, select').forEach(input => {
+                    if (data[input.id]) {
+                        input.value = data[input.id];
+                    }
+                });
+            }
+
+            loadEvaluation(evalData) {
+                this.clearForm();
+                this.setFormData(evalData.data);
+                this.elements.form.dataset.evaluationId = evalData.id;
+                this.showScreen('evaluationScreen');
+            }
+
+            handleSaveDraft() {
+                const data = this.getFormData();
+                if (!data.name) {
+                    alert("Insira o nome do aluno para salvar um rascunho.");
+                    return;
+                }
+                if (this.saveEvaluation('draft')) {
+                    alert('Rascunho salvo!');
+                    this.showScreen('mainMenu');
+                }
+            }
+
+            handleFormSubmit(e) {
+                e.preventDefault();
+                const data = this.getFormData();
+                const results = this.calculateResults(data);
+                if (this.saveEvaluation('complete')) {
+                    this.displayResults(data, results);
+                }
+            }
+
+            saveEvaluation(status) {
+                const data = this.getFormData();
+                if (!data.name && status === 'draft') {
+                    alert("Insira o nome do aluno para salvar um rascunho.");
+                    return false;
+                }
+
+                let history = this.getHistory();
+                let evalId = this.elements.form.dataset.evaluationId || Date.now();
                 history = history.filter(e => e.id != evalId);
                 history.push({ id: evalId, status, data });
-                saveHistory(history);
-                renderHistory();
-                return true;
-            };
 
-            const calculateResults = (data) => {
-                const age = parseInt(data.age), gender = data.gender, weight = parseFloat(data.weight), height = parseInt(data.height);
-                const skinfolds = ['subscapular', 'triceps', 'pectoral', 'midaxillary', 'suprailiac', 'abdominalSkinfold', 'thighSkinfold'].map(id => parseFloat(data[id]));
+                this.saveHistory(history);
+                this.renderHistory();
+                return true;
+            }
+
+            calculateResults(data) {
+                const age = parseInt(data.age);
+                const gender = data.gender;
+                const weight = parseFloat(data.weight);
+                const height = parseInt(data.height);
+
+                const skinfolds = ['subscapular', 'triceps', 'pectoral', 'midaxillary', 'suprailiac', 'abdominalSkinfold', 'thighSkinfold']
+                    .map(id => parseFloat(data[id]) || 0);
+                
                 const sumOfSkinfolds = skinfolds.reduce((a, b) => a + b, 0);
                 const heightInMeters = height / 100;
                 const bmi = weight / (heightInMeters * heightInMeters);
+
                 let bodyDensity;
-                if (gender === 'male') { bodyDensity = 1.112 - (0.00043499 * sumOfSkinfolds) + (0.00000055 * Math.pow(sumOfSkinfolds, 2)) - (0.00028826 * age); } else { bodyDensity = 1.097 - (0.00046971 * sumOfSkinfolds) + (0.00000056 * Math.pow(sumOfSkinfolds, 2)) - (0.00012828 * age); }
+                if (gender === 'male') {
+                    bodyDensity = 1.112 - (0.00043499 * sumOfSkinfolds) + (0.00000055 * Math.pow(sumOfSkinfolds, 2)) - (0.00028826 * age);
+                } else {
+                    bodyDensity = 1.097 - (0.00046971 * sumOfSkinfolds) + (0.00000056 * Math.pow(sumOfSkinfolds, 2)) - (0.00012828 * age);
+                }
+
                 const bodyFatPercentage = ((4.95 / bodyDensity) - 4.5) * 100;
                 const fatMass = weight * (bodyFatPercentage / 100);
                 const leanMass = weight - fatMass;
-                let bmr = gender === 'male' ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age) : 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
-                const idealWeightMin = 18.5 * Math.pow(heightInMeters, 2), idealWeightMax = 24.9 * Math.pow(heightInMeters, 2);
+
+                let bmr = gender === 'male' 
+                    ? 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+                    : 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+
+                const idealWeightMin = 18.5 * Math.pow(heightInMeters, 2);
+                const idealWeightMax = 24.9 * Math.pow(heightInMeters, 2);
+
                 let grade = 10.0;
                 if (bmi < 18.5 || bmi >= 25) grade -= 2.5;
                 if (bmi >= 30) grade -= 1.5;
-                if (gender === 'male' ? bodyFatPercentage > 25 : bodyFatPercentage > 32) grade -= 3;
-                else if (gender === 'male' ? bodyFatPercentage > 18 : bodyFatPercentage > 25) grade -= 1.5;
+                if (gender === 'male' ? bodyFatPercentage > 25 : bodyFatPercentage > 32) {
+                    grade -= 3;
+                } else if (gender === 'male' ? bodyFatPercentage > 18 : bodyFatPercentage > 25) {
+                    grade -= 1.5;
+                }
                 if (grade < 0) grade = 0;
-                return { bmi, bodyFatPercentage, fatMass, leanMass, bmr, idealWeightMin, idealWeightMax, grade };
-            };
 
-            const displayResults = (data, results) => {
-                document.getElementById('result-name').textContent = data.name;
+                return { bmi, bodyFatPercentage, fatMass, leanMass, bmr, idealWeightMin, idealWeightMax, grade };
+            }
+
+            displayResults(data, results) {
+                this.elements.resultName.textContent = this.escapeHtml(data.name);
+
                 let bmiClassification = 'Peso Normal';
                 if (results.bmi < 18.5) bmiClassification = 'Abaixo do Peso';
                 else if (results.bmi >= 25 && results.bmi < 30) bmiClassification = 'Sobrepeso';
                 else if (results.bmi >= 30) bmiClassification = 'Obesidade';
-                document.getElementById('results-content').innerHTML = `<p><strong>IMC:</strong> ${results.bmi.toFixed(2)} (${bmiClassification})</p><p><strong>% Gordura:</strong> ${results.bodyFatPercentage.toFixed(2)}%</p><p><strong>Massa Gorda:</strong> ${results.fatMass.toFixed(2)} kg</p><p><strong>Massa Magra:</strong> ${results.leanMass.toFixed(2)} kg</p><p><strong>TMB:</strong> ${results.bmr.toFixed(0)} kcal/dia</p><p><strong>Peso Ideal:</strong> ${results.idealWeightMin.toFixed(1)} kg - ${results.idealWeightMax.toFixed(1)} kg</p>`;
+
+                this.elements.resultsContent.innerHTML = `
+                    <p><strong>IMC:</strong> ${results.bmi.toFixed(2)} (${bmiClassification})</p>
+                    <p><strong>% Gordura:</strong> ${results.bodyFatPercentage.toFixed(2)}%</p>
+                    <p><strong>Massa Gorda:</strong> ${results.fatMass.toFixed(2)} kg</p>
+                    <p><strong>Massa Magra:</strong> ${results.leanMass.toFixed(2)} kg</p>
+                    <p><strong>TMB:</strong> ${results.bmr.toFixed(0)} kcal/dia</p>
+                    <p><strong>Peso Ideal:</strong> ${results.idealWeightMin.toFixed(1)} kg - ${results.idealWeightMax.toFixed(1)} kg</p>
+                `;
+
                 let gradeClassification = '';
-                if (results.grade >= 8.5) { gradeClassification = 'Excelente'; } else if (results.grade >= 7.0) { gradeClassification = 'Bom'; } else if (results.grade >= 5.0) { gradeClassification = 'Regular'; } else { gradeClassification = 'Precisa Melhorar'; }
-                document.getElementById('final-grade').textContent = results.grade.toFixed(1);
-                document.getElementById('grade-classification').textContent = gradeClassification;
-                showScreen('results');
-            };
+                if (results.grade >= 8.5) gradeClassification = 'Excelente';
+                else if (results.grade >= 7.0) gradeClassification = 'Bom';
+                else if (results.grade >= 5.0) gradeClassification = 'Regular';
+                else gradeClassification = 'Precisa Melhorar';
 
-            // --- EVENT LISTENERS ---
-            btnNewEvaluation.addEventListener('click', () => { clearForm(); showScreen('evaluationScreen'); });
-            btnBackToMenu.addEventListener('click', () => showScreen('mainMenu'));
-            btnCloseResults.addEventListener('click', () => showScreen('mainMenu'));
-            btnSaveDraft.addEventListener('click', () => { if(saveEvaluation('draft')) { alert('Rascunho salvo!'); showScreen('mainMenu'); } });
-            form.addEventListener('submit', (e) => { e.preventDefault(); const data = getFormData(); const results = calculateResults(data); if (saveEvaluation('complete')) displayResults(data, results); });
-            openSettingsBtn.addEventListener('click', () => toggleSettingsPanel(true));
-            closeSettingsBtn.addEventListener('click', () => toggleSettingsPanel(false));
-            overlay.addEventListener('click', () => toggleSettingsPanel(false));
-            saveProfileBtn.addEventListener('click', () => { localStorage.setItem(PROFILE_KEY, profileNameInput.value); loadProfile(); saveProfileBtn.textContent = 'Salvo!'; setTimeout(() => { saveProfileBtn.textContent = 'Salvar Perfil'; }, 2000); });
-            themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
-            historyList.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                const { action, id } = button.dataset;
-                let history = getHistory();
-                if (action === 'delete') { if (confirm('Tem certeza?')) { saveHistory(history.filter(eval => eval.id != id)); renderHistory(); } } 
-                else if (action === 'load') { const evalToLoad = history.find(eval => eval.id == id); if (evalToLoad) { clearForm(); setFormData(evalToLoad.data); form.dataset.evaluationId = id; showScreen('evaluationScreen'); } }
-            });
-            exportDataBtn.addEventListener('click', () => { /* ... */ }); // Lógica de exportação pode ser adicionada aqui
-            importDataBtn.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', (event) => { /* ... */ }); // Lógica de importação pode ser adicionada aqui
-            clearDataBtn.addEventListener('click', () => { /* ... */ }); // Lógica de limpar dados pode ser adicionada aqui
+                this.elements.finalGrade.textContent = results.grade.toFixed(1);
+                this.elements.gradeClassification.textContent = gradeClassification;
 
+                this.showScreen('results');
+            }
 
-            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
-            const initializeApp = () => {
-                applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
-                loadProfile();
-                renderHistory();
-                showScreen('mainMenu');
-            };
-            
-            initializeApp();
+            // ============================================
+            // GERENCIAMENTO DE DADOS
+            // ============================================
+
+            exportData() {
+                const data = {
+                    history: this.getHistory(),
+                    profile: this.profileCache,
+                    theme: localStorage.getItem(this.THEME_KEY),
+                    exportDate: new Date().toISOString(),
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `elsonavalia-backup-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+
+            importData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.history) {
+                            this.historyCache = data.history;
+                            this.saveHistory(data.history);
+                        }
+                        if (data.profile) {
+                            this.profileCache = data.profile;
+                            localStorage.setItem(this.PROFILE_KEY, data.profile);
+                            this.loadProfile();
+                        }
+                        this.renderHistory();
+                        alert('Dados importados com sucesso!');
+                    } catch (err) {
+                        alert('Erro ao importar arquivo. Certifique-se de que é um arquivo válido.');
+                        console.error(err);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = ''; // Reset input
+            }
+
+            clearData() {
+                if (confirm('Tem certeza? Esta ação não pode ser desfeita!')) {
+                    this.historyCache = [];
+                    this.saveHistory([]);
+                    this.renderHistory();
+                    alert('Histórico limpo!');
+                }
+            }
+
+            // ============================================
+            // UTILITÁRIOS
+            // ============================================
+
+            escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, m => map[m]);
+            }
+        }
+
+        // ============================================
+        // INICIALIZAR APLICAÇÃO
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.elsonApp = new ElsonAvaliaApp();
         });
     </script>
 </body>
