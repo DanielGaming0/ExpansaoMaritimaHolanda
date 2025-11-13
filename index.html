@@ -10,6 +10,7 @@
     
     <style>
         :root {
+            /* Tema Padrão (Dark) */
             --accent-gradient: linear-gradient(90deg, #00F260, #0575E6);
             --bg-image: linear-gradient(315deg, #243B55, #141E30);
             --card-bg-color: rgba(255, 255, 255, 0.05);
@@ -216,6 +217,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- SELEÇÃO DE ELEMENTOS DO DOM ---
             const body = document.body;
             const mainMenu = document.getElementById('mainMenu');
             const evaluationScreen = document.getElementById('evaluationScreen');
@@ -241,16 +243,17 @@
             const importFileInput = document.getElementById('importFileInput');
             const clearDataBtn = document.getElementById('clearDataBtn');
 
-            const HISTORY_KEY = 'elsonAvaliaHistory_v3';
+            // --- CHAVES DO LOCALSTORAGE ---
+            const HISTORY_KEY = 'elsonAvaliaHistory_v4';
             const THEME_KEY = 'elsonAvaliaTheme';
             const PROFILE_KEY = 'elsonAvaliaProfile';
 
+            // --- FUNÇÕES DE NAVEGAÇÃO ---
             const showScreen = (screenName) => {
                 mainMenu.classList.add('hidden');
                 evaluationScreen.classList.add('hidden');
                 resultsScreen.classList.add('hidden');
-                const screen = document.getElementById(screenName);
-                if (screen) screen.classList.remove('hidden');
+                document.getElementById(screenName).classList.remove('hidden');
                 window.scrollTo(0, 0);
             };
 
@@ -259,6 +262,7 @@
                 overlay.classList.toggle('active', show);
             };
 
+            // --- FUNÇÕES DE TEMA E PERFIL ---
             const applyTheme = (theme) => {
                 body.dataset.theme = theme;
                 themeToggle.checked = theme === 'dark';
@@ -269,37 +273,41 @@
             const loadProfile = () => {
                 const profileName = localStorage.getItem(PROFILE_KEY) || '';
                 profileNameInput.value = profileName;
-                if(profileName){
-                    welcomeMessage.textContent = `Bem-vindo, ${profileName}.`;
-                } else {
-                    welcomeMessage.textContent = 'A nova era das avaliações físicas.';
-                }
+                welcomeMessage.textContent = profileName ? `Bem-vindo, ${profileName}.` : 'A nova era das avaliações físicas.';
             };
             
-            saveProfileBtn.addEventListener('click', () => {
-                localStorage.setItem(PROFILE_KEY, profileNameInput.value);
-                loadProfile();
-                saveProfileBtn.textContent = 'Salvo!';
-                setTimeout(() => { saveProfileBtn.textContent = 'Salvar Perfil'; }, 2000);
-            });
-
-            themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
-
+            // --- FUNÇÕES DE GERENCIAMENTO DE DADOS ---
             const getHistory = () => JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
             const saveHistory = (history) => localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-
-            exportDataBtn.addEventListener('click', () => { /* Lógica de exportação */ });
-            importDataBtn.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', (event) => { /* Lógica de importação */ });
-            clearDataBtn.addEventListener('click', () => { /* Lógica de limpar dados */ });
             
-            const renderHistory = () => { /* Lógica de renderização do histórico */ };
-            const calculateResults = (data) => { /* Lógica de cálculos */ };
-            const displayResults = (data, results) => { /* Lógica de exibição de resultados */ };
-
-            // ... COLE AQUI AS FUNÇÕES COMPLETAS DE GERENCIAMENTO DE DADOS E LÓGICA DO FORMULÁRIO ...
-            // (As funções abaixo são da versão anterior, completas e funcionais)
-
+            const renderHistory = () => {
+                const history = getHistory();
+                historyList.innerHTML = '';
+                emptyHistoryMessage.classList.toggle('hidden', history.length > 0);
+                history.sort((a, b) => b.id - a.id);
+                history.forEach(eval => {
+                    const date = new Date(eval.id).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong style="color: var(--text-primary-color);">${eval.data.name || 'Aluno sem nome'}</strong>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary-color); display: block;">${date}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                           <span style="padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: white; background-color: var(--${eval.status === 'complete' ? 'success' : 'draft'}-color);">
+                               ${eval.status === 'complete' ? 'Completa' : 'Rascunho'}
+                           </span>
+                           <div class="history-actions" style="display: flex; gap: 0.8rem;">
+                               <button class="btn btn-secondary" data-action="load" data-id="${eval.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ver/Editar</button>
+                               <button class="btn" data-action="delete" data-id="${eval.id}" style="background-color: var(--danger-color); color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem;">Excluir</button>
+                           </div>
+                        </div>`;
+                    historyList.appendChild(item);
+                });
+            };
+            
+            // --- FUNÇÕES DE FORMULÁRIO E CÁLCULO ---
             const clearForm = () => { form.reset(); form.dataset.evaluationId = ''; };
             const getFormData = () => { const data = {}; form.querySelectorAll('input, select').forEach(input => data[input.id] = input.value); return data; };
             const setFormData = (data) => { form.querySelectorAll('input, select').forEach(input => { if (data[input.id]) input.value = data[input.id]; }); };
@@ -316,26 +324,7 @@
                 return true;
             };
 
-            // Colando as funções que faltavam
-            Object.assign(window, { renderHistory, calculateResults, displayResults }); // Tornando-as globais para referência, se necessário
-            
-            window.renderHistory = () => {
-                const history = getHistory();
-                historyList.innerHTML = '';
-                emptyHistoryMessage.classList.toggle('hidden', history.length > 0);
-                history.sort((a, b) => b.id - a.id);
-                history.forEach(eval => {
-                    const date = new Date(eval.id).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const statusClass = eval.status === 'complete' ? 'status-complete' : 'status-draft';
-                    const statusText = eval.status === 'complete' ? 'Completa' : 'Rascunho';
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.innerHTML = `<div class="history-info"><strong>${eval.data.name || 'Aluno sem nome'}</strong><span style="font-size: 0.85rem; color: var(--text-secondary-color);">${date}</span></div><div class="history-actions" style="display: flex; align-items: center; gap: 1rem;"><span style="padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: white; background-color: var(--${eval.status === 'complete' ? 'success' : 'draft'}-color);">${statusText}</span><button class="btn btn-secondary" data-action="load" data-id="${eval.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Ver/Editar</button><button class="btn" data-action="delete" data-id="${eval.id}" style="background-color: var(--danger-color); color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem;">Excluir</button></div>`;
-                    historyList.appendChild(item);
-                });
-            };
-
-            window.calculateResults = (data) => {
+            const calculateResults = (data) => {
                 const age = parseInt(data.age), gender = data.gender, weight = parseFloat(data.weight), height = parseInt(data.height);
                 const skinfolds = ['subscapular', 'triceps', 'pectoral', 'midaxillary', 'suprailiac', 'abdominalSkinfold', 'thighSkinfold'].map(id => parseFloat(data[id]));
                 const sumOfSkinfolds = skinfolds.reduce((a, b) => a + b, 0);
@@ -357,13 +346,13 @@
                 return { bmi, bodyFatPercentage, fatMass, leanMass, bmr, idealWeightMin, idealWeightMax, grade };
             };
 
-            window.displayResults = (data, results) => {
+            const displayResults = (data, results) => {
                 document.getElementById('result-name').textContent = data.name;
                 let bmiClassification = 'Peso Normal';
                 if (results.bmi < 18.5) bmiClassification = 'Abaixo do Peso';
                 else if (results.bmi >= 25 && results.bmi < 30) bmiClassification = 'Sobrepeso';
                 else if (results.bmi >= 30) bmiClassification = 'Obesidade';
-                document.getElementById('results-content').innerHTML = `<p><strong>IMC:</strong> ${results.bmi.toFixed(2)} (${bmiClassification})</p><p><strong>% Gordura:</strong> ${results.bodyFatPercentage.toFixed(2)}%</p><p><strong>Massa Gorda:</strong> ${fatMass.toFixed(2)} kg</p><p><strong>Massa Magra:</strong> ${leanMass.toFixed(2)} kg</p><p><strong>TMB:</strong> ${results.bmr.toFixed(0)} kcal/dia</p><p><strong>Peso Ideal:</strong> ${results.idealWeightMin.toFixed(1)} kg - ${results.idealWeightMax.toFixed(1)} kg</p>`;
+                document.getElementById('results-content').innerHTML = `<p><strong>IMC:</strong> ${results.bmi.toFixed(2)} (${bmiClassification})</p><p><strong>% Gordura:</strong> ${results.bodyFatPercentage.toFixed(2)}%</p><p><strong>Massa Gorda:</strong> ${results.fatMass.toFixed(2)} kg</p><p><strong>Massa Magra:</strong> ${results.leanMass.toFixed(2)} kg</p><p><strong>TMB:</strong> ${results.bmr.toFixed(0)} kcal/dia</p><p><strong>Peso Ideal:</strong> ${results.idealWeightMin.toFixed(1)} kg - ${results.idealWeightMax.toFixed(1)} kg</p>`;
                 let gradeClassification = '';
                 if (results.grade >= 8.5) { gradeClassification = 'Excelente'; } else if (results.grade >= 7.0) { gradeClassification = 'Bom'; } else if (results.grade >= 5.0) { gradeClassification = 'Regular'; } else { gradeClassification = 'Precisa Melhorar'; }
                 document.getElementById('final-grade').textContent = results.grade.toFixed(1);
@@ -371,15 +360,7 @@
                 showScreen('results');
             };
 
-            historyList.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                const { action, id } = button.dataset;
-                let history = getHistory();
-                if (action === 'delete') { if (confirm('Tem certeza que deseja excluir esta avaliação?')) { saveHistory(history.filter(eval => eval.id != id)); renderHistory(); } } 
-                else if (action === 'load') { const evalToLoad = history.find(eval => eval.id == id); if (evalToLoad) { clearForm(); setFormData(evalToLoad.data); form.dataset.evaluationId = id; showScreen('evaluationScreen'); } }
-            });
-
+            // --- EVENT LISTENERS ---
             btnNewEvaluation.addEventListener('click', () => { clearForm(); showScreen('evaluationScreen'); });
             btnBackToMenu.addEventListener('click', () => showScreen('mainMenu'));
             btnCloseResults.addEventListener('click', () => showScreen('mainMenu'));
@@ -388,14 +369,30 @@
             openSettingsBtn.addEventListener('click', () => toggleSettingsPanel(true));
             closeSettingsBtn.addEventListener('click', () => toggleSettingsPanel(false));
             overlay.addEventListener('click', () => toggleSettingsPanel(false));
+            saveProfileBtn.addEventListener('click', () => { localStorage.setItem(PROFILE_KEY, profileNameInput.value); loadProfile(); saveProfileBtn.textContent = 'Salvo!'; setTimeout(() => { saveProfileBtn.textContent = 'Salvar Perfil'; }, 2000); });
+            themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
+            historyList.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const { action, id } = button.dataset;
+                let history = getHistory();
+                if (action === 'delete') { if (confirm('Tem certeza?')) { saveHistory(history.filter(eval => eval.id != id)); renderHistory(); } } 
+                else if (action === 'load') { const evalToLoad = history.find(eval => eval.id == id); if (evalToLoad) { clearForm(); setFormData(evalToLoad.data); form.dataset.evaluationId = id; showScreen('evaluationScreen'); } }
+            });
+            exportDataBtn.addEventListener('click', () => { /* ... */ }); // Lógica de exportação pode ser adicionada aqui
+            importDataBtn.addEventListener('click', () => importFileInput.click());
+            importFileInput.addEventListener('change', (event) => { /* ... */ }); // Lógica de importação pode ser adicionada aqui
+            clearDataBtn.addEventListener('click', () => { /* ... */ }); // Lógica de limpar dados pode ser adicionada aqui
 
+
+            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
             const initializeApp = () => {
-                const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-                applyTheme(savedTheme);
+                applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
                 loadProfile();
                 renderHistory();
                 showScreen('mainMenu');
             };
+            
             initializeApp();
         });
     </script>
